@@ -1,41 +1,97 @@
+# Generate a dataset similar to the one presented on the enclosed picture.
+# Run on it a k-means clustering algorithm (with k=9) and the following initialisation methods:
+# - fully random;
+# - Forgy;
+# - random partition;
+# - k-means++.
+# Measure a chosen clustering quality metric (either Davies-Bouldin index, Dunn index, or Silhouette) after each algorithm iteration.
+# Present the results on a plot (remember to repeat experiment multiple times and show the standard deviation of the values as errorbars).
+# Discuss the influence of the initialisation and the overall process.
+
+from sklearn.metrics import silhouette_samples, silhouette_score
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-from sklearn import neighbors, datasets
+from sklearn.cluster import KMeans
 
-n_neighbors = 15
+# Generating data set (points)
+points = np.array([[1, 1]])
+i = 1
+while i < 7:
+    j = 1
+    while j < 7:
+        temp = np.array([[np.random.uniform(i, i+1), np.random.uniform(j, j+1)] for _ in range(50)])
+        points = np.concatenate((points, temp), axis = 0)
+        j = j + 2
+    i = i + 2
 
-# import some data to play with
-iris = datasets.load_iris()
-X = iris.data[:, :2]  # we only take the first two features.
-y = iris.target
+# calculating silhouette score for kmeans++
+kMeansPP = KMeans(n_clusters=9, init='k-means++', n_init=1)
+kMeansPPScore = []
+for _ in range(10):
+    kMeansPPLabels = kMeansPP.fit_predict(points)
+    kMeansPPScore.append(silhouette_score(points, kMeansPPLabels))
 
-h = .02  # step size in the mesh
+# calculating silhouette score for kmeans with random init
+kMeansRandom = KMeans(n_clusters=9, init='random', n_init=1)
+kMeansRandomScore = []
+for _ in range(10):
+    kMeansRandomLabels = kMeansRandom.fit_predict(points)
+    kMeansRandomScore.append(silhouette_score(points, kMeansRandomLabels))
 
-# Create color maps
-cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
-cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+# calculating silhouette score for kmeans with forgy init
+kMeansForgyScore = []
+for _ in range(10):
+    forgyIndexes = np.random.uniform(0, 450, size=9)
+    forgyPoints = np.array([points[int(forgyIndexes[i])] for i in range(len(forgyIndexes))])
+    kMeansForgy = KMeans(n_clusters=9, init=forgyPoints, n_init=1)
+    kMeansForgyLabels = kMeansForgy.fit_predict(points)
+    kMeansForgyScore.append(silhouette_score(points, kMeansForgyLabels))
 
-# we create an instance of Neighbours Classifier and fit the data.
-clf = neighbors.KNeighborsClassifier(n_neighbors)
-clf.fit(X, y)
+# calculating silhouette score for kmeans with random partition init
+kMeansRPScore = []
+for _ in range(10):
+    temp = np.random.uniform(0, 9, size=450)
+    RPIndexes = np.array([int(temp[i]) for i in range(len(temp))])
 
-# Plot the decision boundary. For that, we will assign a color to each
-# point in the mesh [x_min, m_max]x[y_min, y_max].
-x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                     np.arange(y_min, y_max, h))
-Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-print(len(Z))
-# Put the result into a color plot
-Z = Z.reshape(xx.shape)
-plt.figure()
-plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+    results = [[[], []] for _ in range(9)]
+    for cluster, coords in zip(RPIndexes, points):
+        results[cluster][0].append(coords[0])
+        results[cluster][1].append(coords[1])
+    RPPoints = np.array([[sum(results[i][0])/len(results[i][0]), sum(results[i][1])/len(results[i][1])] for i in range(9)])
+    print(RPPoints)
 
-# Plot also the training points
-plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold)
-plt.xlim(xx.min(), xx.max())
-plt.ylim(yy.min(), yy.max())
+    kMeansRP = KMeans(n_clusters=9, init=RPPoints, n_init=1)
+    kMeansRPLabels = kMeansRP.fit_predict(points)
+    kMeansRPScore.append(silhouette_score(points, kMeansRPLabels))
+plt.figure(2)
+plt.scatter(points[:,0], points[:,1], c=kMeansRPLabels)
+
+
+# plotting data
+plt.figure(1)
+
+plt.subplot(2, 2, 1)
+plt.errorbar(range(10), kMeansPPScore, yerr = np.std(kMeansPPScore), fmt ='-o')
+plt.axis([-1, 10, 0, 1])
+plt.title('Silhouette Score (higher = better) for kMeans++')
+plt.grid()
+
+plt.subplot(2, 2, 2)
+plt.errorbar(range(10), kMeansRandomScore, yerr = np.std(kMeansRandomScore), fmt='-o')
+plt.axis([-1, 10, 0, 1])
+plt.title('Silhouette Score (higher = better) for kMeans with random init')
+plt.grid()
+
+plt.subplot(2, 2, 3)
+plt.errorbar(range(10), kMeansForgyScore, yerr = np.std(kMeansForgyScore), fmt='-o')
+plt.axis([-1, 10, 0, 1])
+plt.title('Silhouette Score (higher = better) for kMeans with forgy init')
+plt.grid()
+
+plt.subplot(2, 2, 4)
+plt.errorbar(range(10), kMeansRPScore, yerr = np.std(kMeansRPScore), fmt='-o')
+plt.axis([-1, 10, 0, 1])
+plt.title('Silhouette Score (higher = better) for kMeans with random partial init')
+plt.grid()
 
 plt.show()
