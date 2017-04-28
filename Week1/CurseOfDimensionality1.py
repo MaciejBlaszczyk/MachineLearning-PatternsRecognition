@@ -9,7 +9,6 @@ hyperBallRadius = 1
 
 percentResults = []
 
-
 for dimensions in range(2, numberOfDimensions):
     # generate random points in hypercube
     points = np.array([np.random.uniform(-1, 1, size = dimensions) for _ in range(numberOfPoints)])
@@ -26,7 +25,6 @@ for dimensions in range(2, numberOfDimensions):
     percent = (math.fsum(results)/numberOfPoints)*100
     print("Dimensions:", dimensions, " ", percent, "% points in hyperball")
     percentResults.append(percent)
-
 
 plt.plot([_ for _ in range(2, numberOfDimensions)], percentResults)
 plt.axis([0, 21, -10, 110])
