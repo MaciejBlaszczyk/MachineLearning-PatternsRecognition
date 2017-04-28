@@ -1,8 +1,3 @@
-#The aim of the assignment is to investigate how the following quantities change depending on the number of dimensions. For the purposes of this task we use the Euclidean distance.
-
-# We have a hypercube with edges length equal to 1.0. We randomly fill it with evenly distributed points.
-# What is the ratio between the standard deviation of distance between those points and the average distance between them?
-
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -10,11 +5,16 @@ import matplotlib.pyplot as plt
 ratio = []
 numberOfPoints = 100
 numberOfDimensions = 101
+hyperCubeEdge = 1
 
 for dimensions in range(2, numberOfDimensions):
-    points = np.array([np.random.uniform(0, 1, size = dimensions) for _ in range(numberOfPoints)])
+    # generate random points in hypercube
+    points = np.array([np.random.uniform(0, hyperCubeEdge, size = dimensions) for _ in range(numberOfPoints)])
+
+    # create array for distances between points
     distances = np.empty(int((numberOfPoints * (numberOfPoints - 1)) / 2))
 
+    # calculate distances between points
     temp = 1
     position = 0
     for i in range(numberOfPoints):
@@ -23,8 +23,13 @@ for dimensions in range(2, numberOfDimensions):
             position += 1
         temp += 1
 
+    # calculate mean
     mean = math.fsum(distances)/len(distances)
+
+    # calculate standard deviation
     stddev = math.sqrt((math.fsum((distances - mean) ** 2))/len(distances))
+
+    # ratio between stddev and mean
     ratio.append(stddev/mean)
 
 plt.plot([_ for _ in range(2, numberOfDimensions)], ratio, 'bo')
