@@ -1,14 +1,4 @@
-# Generate a dataset similar to the one presented on the enclosed picture.
-# Run on it a k-means clustering algorithm (with k=9) and the following initialisation methods:
-# - fully random;
-# - Forgy;
-# - random partition;
-# - k-means++.
-# Measure a chosen clustering quality metric (either Davies-Bouldin index, Dunn index, or Silhouette) after each algorithm iteration.
-# Present the results on a plot (remember to repeat experiment multiple times and show the standard deviation of the values as errorbars).
-# Discuss the influence of the initialisation and the overall process.
-
-from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.metrics import silhouette_score
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -23,6 +13,8 @@ while i < 7:
         points = np.concatenate((points, temp), axis = 0)
         j = j + 2
     i = i + 2
+
+x = KMeans(n_clusters=9,n_init=1).fit(points)
 
 # calculating silhouette score for kmeans++
 kMeansPP = KMeans(n_clusters=9, init='k-means++', n_init=1)
@@ -58,17 +50,11 @@ for _ in range(10):
         results[cluster][0].append(coords[0])
         results[cluster][1].append(coords[1])
     RPPoints = np.array([[sum(results[i][0])/len(results[i][0]), sum(results[i][1])/len(results[i][1])] for i in range(9)])
-    print(RPPoints)
 
     kMeansRP = KMeans(n_clusters=9, init=RPPoints, n_init=1)
     kMeansRPLabels = kMeansRP.fit_predict(points)
     kMeansRPScore.append(silhouette_score(points, kMeansRPLabels))
-plt.figure(2)
-plt.scatter(points[:,0], points[:,1], c=kMeansRPLabels)
 
-
-# plotting data
-plt.figure(1)
 
 plt.subplot(2, 2, 1)
 plt.errorbar(range(10), kMeansPPScore, yerr = np.std(kMeansPPScore), fmt ='-o')
