@@ -1,7 +1,7 @@
 # Kernel trick usage
 Generate 2 datasets looking like +- like on attached figures (points coloured differently belong to different classes). 
 <p align="center">
-  <img src="PCA#1.png"/>
+  <img src="PCA#1.png" width="733" height="325"/>
 </p>
 Apply to them the basic PCA method. Draw diagrams presenting point distribution after this transformation. 
 Do the same transformation, but this time using kernel PCA with kernel functions “cosine”, “sigmoid”, and “rbf” 
